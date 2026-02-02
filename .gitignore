@@ -1,0 +1,94 @@
+############################
+# OS / Editor
+############################
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+############################
+# Environment variables
+############################
+.env
+.env.*
+!.env.example
+
+############################
+# Logs
+############################
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+############################
+# Node / Package managers
+############################
+node_modules/
+.pnp
+.pnp.js
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+
+############################
+# Build outputs (Frontend)
+############################
+frontend/dist/
+frontend/.DS_Store
+frontend/build/
+frontend/out/
+frontend/*.tsbuildinfo
+frontend/.eslintcache
+frontend/logs
+frontend/*.log
+frontend/npm-debug.log*
+frotnend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+frontend/lerna-debug.log*
+frontend/dist-ssr
+frontend/coverage
+frontend/*.local
+
+############################
+# Backend (Node / Prisma)
+############################
+backend/node_modules/
+backend/dist/
+backend/.cache/
+
+# Prisma
+backend/prisma/dev.db
+backend/src/generated/
+backend/src/prisma/generated/
+
+############################
+# Blockchain (Hardhat)
+############################
+blockchain/node_modules/
+blockchain/cache/
+blockchain/artifacts/
+blockchain/typechain/
+blockchain/coverage/
+blockchain/gas-report.txt
+blockchain/ignition/deployments/
+
+############################
+# Testing
+############################
+coverage/
+*.lcov
+
+############################
+# Temporary files
+############################
+tmp/
+temp/
+*.tmp

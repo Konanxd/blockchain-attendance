@@ -1,0 +1,50 @@
+generator client {
+  provider   = "prisma-client"
+  output     = "./generated"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  tickets   Ticket[]
+}
+
+model Operator {
+  id        Int          @id @default(autoincrement())
+  name      String
+  apiKey    String       @unique
+  role      OperatorRole @default(OPERATOR)
+  createdAt DateTime     @default(now())
+}
+
+model Event {
+  id        Int      @id @default(autoincrement())
+  name      String
+  eventCode String   @unique
+  createdAt DateTime @default(now())
+  tickets   Ticket[]
+}
+
+model Ticket {
+  id        Int      @id @default(autoincrement())
+  ticketId  String   @unique
+  userId    Int
+  eventId   Int
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+enum OperatorRole {
+  ADMIN
+  OPERATOR
+}
