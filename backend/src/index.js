@@ -1,8 +1,10 @@
 import express from "express";
 import "dotenv/config.js";
 import cors from "cors";
+import authRoutes from "./routes/auth.route.js";
 import operatorRoutes from "./routes/operator.route.js";
 import publicRoutes from "./routes/public.route.js";
+import eventRoutes from "./routes/event.route.js";
 import ticketRoutes from "./routes/ticket.route.js";
 
 const app = express();
@@ -11,8 +13,10 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+app.use("/api/auth", authRoutes);
 app.use("/api/operator", operatorRoutes);
 app.use("/api/public", publicRoutes);
+app.use("/api/event", eventRoutes);
 app.use("/api/tickets", ticketRoutes);
 
 app.get("/health", (req, res) => {

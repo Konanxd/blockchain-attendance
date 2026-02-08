@@ -27,9 +27,9 @@ export const createTicket = async (req, res) => {
 
     const ticketId = await ticketService.generateTicket(event.eventCode, user.id);
 
-    const ticket = prisma.ticket.create({
+    const ticket = await prisma.ticket.create({
       data: {
-        ticketId,
+        ticketId: ticketId,
         userId: userId,
         eventId: eventId,
       },
