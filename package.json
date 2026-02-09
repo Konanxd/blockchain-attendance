@@ -1,0 +1,10 @@
+{
+  "name": "fullstack-dev",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\" \"npx prisma studio --url postgres://attendance_user:blcexp@localhost:5432/attendance_db\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

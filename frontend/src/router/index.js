@@ -1,18 +1,21 @@
 import { createRouter, createWebHistory } from 'vue-router'
-
+import { isAuthenticated } from '@/services/authService'
+import { useAuthStore } from '@/stores/auth'
 
 const userRoutes = [
   {
     path: '/dashboard',
     name: 'Dashboard',
     component: () => import('@/views/User/DashboardView.vue'),
+    meta: { requiresAuth: true },
   },
   {
     path: '/detail/:ticketId',
     name: 'TicketDetail',
     component: () => import('@/views/User/TicketDetailView.vue'),
+    meta: { requiresAuth: true },
   },
-];
+]
 
 const adminRoutes = [
   {
@@ -20,7 +23,7 @@ const adminRoutes = [
     name: 'AttendanceList',
     component: () => import('@/views/Admin/AttendanceListView.vue'),
   },
-];
+]
 
 const routes = [
   {
@@ -31,6 +34,7 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: () => import('@/views/LoginView.vue'),
+    meta: { guestOnly: true },
   },
   {
     path: '/about',
@@ -44,6 +48,20 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
+})
+
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
+
+  if (to.meta.requiresAuth && !authStore.isLoggedIn) {
+    return next('/login')
+  }
+
+  if (to.meta.guestOnly && authStore.isLoggedIn) {
+    return next('/dashboard')
+  }
+
+  next()
 })
 
 export default router
