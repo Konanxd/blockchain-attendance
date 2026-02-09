@@ -39,11 +39,11 @@
               </h2>
               <p class="flex items-center text-s gap-2">
                 <Icon icon="lets-icons:date-fill" />
-                {{ new Date(ticket.event.dateTime).toLocaleString() }}
+                {{ new Date(ticket.event.dateTime).toDateString() }}
               </p>
               <p class="flex items-center text-s gap-2">
                 <Icon icon="tdesign:location-filled" />
-                {{ ticket.event.location }}
+                {{ ticket.event.Location }}
               </p>
             </div>
             <img
@@ -52,11 +52,13 @@
               alt="dsadasasd"
             />
           </div>
-          <div
+          <button
             class="flex items-center justify-center w-full px-2 py-2 rounded-2xl bg-[#788bff] text-white gap-2 text-base"
+            @click="handleView(ticket.id)"
           >
-            <Icon class="text-2xl" icon="mingcute:ticket-fill" /> View Ticket
-          </div>
+            <Icon class="text-2xl" icon="mingcute:ticket-fill" /> 
+            View Ticket
+          </button>
         </div>
       </div>
     </div>
@@ -66,6 +68,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
 import { getByUserId } from '@/services/ticketService'
 import { Icon } from '@iconify/vue'
 
@@ -73,6 +76,8 @@ const auth = useAuthStore()
 const tickets = ref([])
 const loading = ref(true)
 const error = ref('')
+
+const router = useRouter()
 
 onMounted(async () => {
   try {
@@ -92,4 +97,17 @@ function isTicketDisabled(ticket) {
 
   return ticket.used === true || eventDate <= now
 }
+
+async function handleView(ticketId) {
+  try {
+
+    router.push(`/detail/${ticketId}`)
+  } catch (err) {
+    error.value = err?.response?.data?.message || 'Invalid email or password'
+    console.error(err)
+  } finally {
+    loading.value = false
+  }
+}
+
 </script>

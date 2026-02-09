@@ -1,4 +1,6 @@
 import QRCode from "qrcode";
+import jwt from 'jsonwebtoken';
+import "dotenv/config.js"
 
 class QRCodeService {
   async generate(payload) {
@@ -6,11 +8,20 @@ class QRCodeService {
       throw new Error("QR payload must be a string");
     }
 
-    return QRCode.toDataURL(payload, {
-      errorCorrectionLevel: "M",
-      margin: 1,
-      width: 300,
-    });
+    const token = jwt.sign(
+      {
+        ticketId: payload.id,
+        type: 'SCAN'
+      },
+      process.env.QR_SECRET,
+      {expiresIn: '1h'}
+    )
+
+    const scanUrl = `${process.env.API_BASE_URL}/api/operator/scan?token=${token}`
+
+    const qrImage = await QRCode.toDataURL(scanUrl)
+
+    return qrImage
   }
 }
 

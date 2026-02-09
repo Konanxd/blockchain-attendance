@@ -41,12 +41,36 @@
 </template>
 
 <script setup>
+import { ref, onMounted, computed, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useRouter, useRoute } from 'vue-router';
+import { getQR } from '@/services/ticketService'
 import { Icon } from '@iconify/vue'
 
 const auth = useAuthStore()
+const ticket = ref('')
+const qr = ref(null)
+const loading = ref(true)
+const error = ref('')
 
-function login() {
-  auth.login({ name: 'Jonatan' })
-}
+const router = useRouter()
+const route = useRoute()
+
+const ticketId = route.params.ticketId;
+/**
+ onMounted(async () => {
+  try {
+    const res = await getByUserId(auth.user.id)
+    tickets.value = res
+    console.log(tickets.value)
+  } catch (err) {
+    error.value = 'Failed to load tickets'
+  } finally {
+    loading.value = false
+  }
+})
+
+ */
+
+
 </script>

@@ -107,6 +107,8 @@ export const getUserTickets = async (req, res) => {
       include: { event: true },
     });
 
+    console.log(tickets)
+
     return res.json(tickets);
   } catch (error) {
     console.error(error);
