@@ -12,6 +12,7 @@ const router = express.Router();
 router.post("/create", createTicket);
 router.get("/:ticketId", getTicket);
 router.get("/:ticketId/qr", getTicketQR);
-router.get("/user/:userId", requireAuth, getUserTickets);
+// router.get("/user/:userId", requireAuth, getUserTickets);
+router.get("/user/:userId", getUserTickets);
 
 export default router;
