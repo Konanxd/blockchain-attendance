@@ -1,5 +1,27 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+
+const userRoutes = [
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: () => import('@/views/User/DashboardView.vue'),
+  },
+  {
+    path: '/detail/:ticketId',
+    name: 'TicketDetail',
+    component: () => import('@/views/User/TicketDetailView.vue'),
+  },
+];
+
+const adminRoutes = [
+  {
+    path: '/attendance',
+    name: 'AttendanceList',
+    component: () => import('@/views/Admin/AttendanceListView.vue'),
+  },
+];
+
 const routes = [
   {
     path: '/',
@@ -15,6 +37,8 @@ const routes = [
     name: 'About',
     component: () => import('@/views/AboutView.vue'),
   },
+  ...userRoutes,
+  ...adminRoutes,
 ]
 
 const router = createRouter({

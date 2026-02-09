@@ -8,9 +8,11 @@ import HelloWorld from './components/HelloWorld.vue'
 </template>
 
 <style scoped>
-html {
+#app {
   width: 100vw;
   height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 
 header {
