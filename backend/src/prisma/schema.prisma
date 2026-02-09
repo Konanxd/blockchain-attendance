@@ -30,6 +30,8 @@ model Event {
   name      String
   eventCode String   @unique
   createdAt DateTime @default(now())
+  dateTime  DateTime @default(dbgenerated("NOW() + interval '30 days'"))
+  Location  String   @default("TBD")
   tickets   Ticket[]
 }
 

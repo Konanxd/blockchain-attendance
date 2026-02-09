@@ -30,7 +30,7 @@ class BlockchainService {
     try {
       console.log("Marking attendance: ", { ticketId, eventId });
 
-      const ticketIdBytes = ethers.id(ticketId);
+      const ticketIdBytes = ticketId;
       const eventIdBytes = ethers.id(eventId);
 
       const isUsed = await this.contract.verifyAttendance(ticketIdBytes);
@@ -38,7 +38,11 @@ class BlockchainService {
         throw new Error("Ticket has already been used");
       }
 
-      const tx = await this.contract.markAttendance(ticketIdBytes, eventIdBytes);
+      const tx = await this.contract.markAttendance(
+        ethers.ZeroAddress,
+        ticketIdBytes,
+        eventIdBytes,
+      );
       console.log(`Transaction sent: ${tx.hash}`);
 
       const receipt = await tx.wait();

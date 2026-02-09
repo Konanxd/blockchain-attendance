@@ -1,5 +1,5 @@
 import express from "express";
-import { requireAuth, requireRole } from "../middlewares/auth.middleware.js";
+import { requireAuth } from "../middlewares/auth.middleware.js";
 import {
   createTicket,
   getTicket,
@@ -9,7 +9,7 @@ import {
 
 const router = express.Router();
 
-router.post("/", createTicket);
+router.post("/create", createTicket);
 router.get("/:ticketId", getTicket);
 router.get("/:ticketId/qr", getTicketQR);
 router.get("/user/:userId", requireAuth, getUserTickets);

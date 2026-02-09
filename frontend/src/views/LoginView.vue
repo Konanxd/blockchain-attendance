@@ -76,7 +76,7 @@ async function handleLogin() {
   try {
     const data = await login(email.value, password.value)
 
-    authStore.login(data.user)
+    authStore.login(data.user, data.token)
 
     router.push('/dashboard')
   } catch (err) {

@@ -1,20 +1,21 @@
 import api from './api.js'
 
 export const login = async (email, password) => {
-  const { data } = await api.post('/auth/login', { email, password })
-  localStorage.setItem('token', data.token)
+  const res = await api.post('/auth/login', { email, password })
+  console.log(res)
+  localStorage.setItem('token', res.data.token)
 
-  return data.user
+  return res.data
 }
 
 export const register = async (name, email, password) => {
-  const payload = await api.post('/auth/register', {
+  const res = await api.post('/auth/register', {
     name,
     email,
     password,
   })
 
-  return data
+  return res.data
 }
 
 export const getToken = () => {

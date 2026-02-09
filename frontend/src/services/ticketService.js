@@ -2,7 +2,7 @@ import api from './api.js'
 
 export const create = async (payload) => {
   try {
-    const { data } = await api.post('/ticket/create', payload)
+    const { data } = await api.post('/tickets/create', payload)
 
     return data
   } catch (e) {
@@ -13,7 +13,7 @@ export const create = async (payload) => {
 
 export const getById = async (payload) => {
   try {
-    const { data } = await api.get(`/ticket/${payload.ticketId}`)
+    const { data } = await api.get(`/tickets/${payload.ticketId}`)
 
     return data
   } catch (e) {
@@ -24,7 +24,7 @@ export const getById = async (payload) => {
 
 export const getQR = async (payload) => {
   try {
-    const { data } = await api.get(`/ticket/${payload.ticketId}/qr`)
+    const { data } = await api.get(`/tickets/${payload.ticketId}/qr`)
 
     return data
   } catch (e) {
@@ -33,11 +33,11 @@ export const getQR = async (payload) => {
   }
 }
 
-export const getByUserId = async (payload) => {
+export const getByUserId = async (userId) => {
   try {
-    const { data } = await api.get(`/ticket/user/${payload.userId}`)
+    const res = await api.get(`/tickets/user/${userId}`)
 
-    return data
+    return res.data
   } catch (e) {
     console.error(e)
     throw new Error('Something is wrong. Please try again later.')
