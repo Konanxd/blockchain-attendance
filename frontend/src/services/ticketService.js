@@ -11,7 +11,7 @@ export const create = async (payload) => {
   }
 }
 
-export const getById = async (payload) => {
+export const getByTicketId = async (payload) => {
   try {
     const { data } = await api.get(`/tickets/${payload.ticketId}`)
 
@@ -21,6 +21,18 @@ export const getById = async (payload) => {
     throw new Error('Something is wrong. Please try again later.')
   }
 }
+
+export const getById = async (id) => {
+  try {
+    const res = await api.get(`/tickets/${id}`)
+
+    return res.data
+  } catch (e) {
+    console.error(e)
+    throw new Error('Something is wrong. Please try again later.')
+  }
+}
+
 
 export const getQR = async (ticketId) => {
   try {
@@ -37,7 +49,6 @@ export const getByUserId = async (userId) => {
   try {
     const res = await api.get(`/tickets/user/${userId}`)
 
-    console.log(res.data)
     return res.data
   } catch (e) {
     console.error(e)

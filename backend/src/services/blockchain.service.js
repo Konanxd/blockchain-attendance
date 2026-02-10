@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import path from "path";
 import "dotenv/config.js";
+import etherscanService from "../services/etherscan.service.js"
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -37,9 +38,22 @@ class BlockchainService {
       if (isUsed) {
         throw new Error("Ticket has already been used");
       }
+      const signerAddress = await this.contract.runner.getAddress();
+      const isOperator = await this.contract.operators(signerAddress);
+      const owner = await this.contract.owner();
+
+      console.log({ signerAddress, isOperator });
+
+      if (owner.toLowerCase() === signerAddress.toLowerCase()) {
+          console.log("Signer is Owner. Forcing operator update...");
+          const txOp = await this.contract.addOperator(signerAddress);
+          await txOp.wait();
+          console.log("Operator re-added successfully.");
+      } else {
+          console.warn("Signer is NOT the owner. Ensure the owner has added this address.");
+      }
 
       const tx = await this.contract.markAttendance(
-        ethers.ZeroAddress,
         ticketIdBytes,
         eventIdBytes,
       );
@@ -48,6 +62,10 @@ class BlockchainService {
       const receipt = await tx.wait();
       console.log(`Transaction confirmed on block: ${receipt.blockNumber}`);
 
+      console.log('Etherscan result:\n')
+      const etherscanTx = await etherscanService.getTransactionFromReceipt(tx.hash)
+      console.log(etherscanTx)
+
       return {
         success: true,
         transactionHash: tx.hash,
@@ -55,6 +73,12 @@ class BlockchainService {
       };
     } catch (error) {
       console.error("Error marking attendance: ", error.message);
+      if (error.data) {
+        // Mencoba mendecode error message dari kontrak
+        const decodedError = this.contract.interface.parseError(error.data);
+        console.error("Revert Reason:", decodedError?.name);
+      }
+      console.error("Full Error:", error);
       throw error;
     }
   }

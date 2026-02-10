@@ -25,7 +25,10 @@ export const createTicket = async (req, res) => {
       });
     }
 
-    const ticketId = await ticketService.generateTicket(event.eventCode, user.id);
+    const ticketId = await ticketService.generateTicket(
+      event.eventCode, 
+      user.id
+    );
 
     const ticket = await prisma.ticket.create({
       data: {
@@ -69,6 +72,33 @@ export const getTicket = async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
+export const getTicketUnique = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.user.id
+
+    const ticket = await prisma.ticket.findUnique({
+      where: { 
+        id: Number(id),
+        userId: userId
+      },
+      include: {
+        event: true,
+        user: true,
+      },
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
+
+    return res.json(ticket);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: error.message });
+  }
+}
 
 export const getTicketQR = async (req, res) => {
   try {

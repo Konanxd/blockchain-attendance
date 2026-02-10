@@ -53,19 +53,21 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import axios from 'axios'
 import QRCode from 'qrcode'
+import { useAuthStore } from "@/stores/auth"
+import { getById } from "@/services/ticketService" 
 import { Icon } from '@iconify/vue'
 
 const route = useRoute()
-const ticketId = route.params.ticketId
+const auth = useAuthStore()
+const id = route.params.id
 const ticket = ref(null)
 const qrCanvas = ref(null)
 
 onMounted(async () => {
   try {
-    const res = await axios.get(`http://localhost:3000/api/tickets/${ticketId}`)
-    ticket.value = res.data
+    const res = await getById(id)
+    ticket.value = res 
     console.log(ticket.value)
 
     QRCode.toCanvas(qrCanvas.value, ticket.value.ticketId, {

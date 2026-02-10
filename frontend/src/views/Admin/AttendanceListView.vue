@@ -9,32 +9,33 @@
       </div>
     </div>
 
-    <div class="w-full px-10 py-4">
-      <button
-        v-if="!isConnected"
-        @click="connectMetaMask"
-        class="bg-white text-[#5970FF] px-4 py-2 rounded-2xl shadow-md font-bold"
-      >
-        Connect MetaMask
-      </button>
+    <!-- <div class="w-full px-10 py-4"> -->
+    <!--   <button -->
+    <!--     v-if="!isConnected" -->
+    <!--     @click="connectMetaMask" -->
+    <!--     class="bg-white text-[#5970FF] px-4 py-2 rounded-2xl shadow-md font-bold" -->
+    <!--   > -->
+    <!--     Connect MetaMask -->
+    <!--   </button> -->
+    <!---->
+    <!--   <div v-else class="flex items-center gap-4"> -->
+    <!--     <p class="text-white font-semibold">MetaMask connected ✅</p> -->
+    <!--     <button -->
+    <!--       @click="disconnectMetaMask" -->
+    <!--       class="bg-red-500 text-white px-4 py-2 rounded-2xl shadow-md font-bold" -->
+    <!--     > -->
+    <!--       Disconnect -->
+    <!--     </button> -->
+    <!--   </div> -->
+    <!-- </div> -->
 
-      <div v-else class="flex items-center gap-4">
-        <p class="text-white font-semibold">MetaMask connected ✅</p>
-        <button
-          @click="disconnectMetaMask"
-          class="bg-red-500 text-white px-4 py-2 rounded-2xl shadow-md font-bold"
-        >
-          Disconnect
-        </button>
-      </div>
-    </div>
-
-    <div v-if="isConnected" class="flex flex-col w-full px-10 pb-3 shadow-3xl gap-5">
+    <!-- <div v-if="isConnected" class="flex flex-col w-full px-10 pb-3 shadow-3xl gap-5"> -->
+    <div class="flex flex-col w-full px-10 pb-3 shadow-3xl gap-5">
 
       <div class="flex flex-col gap-2">
         <input v-model="ticketId" placeholder="Ticket ID (e.g. TICKET123)" class="px-3 py-2 rounded-lg"/>
         <input v-model="eventId" placeholder="Event ID (e.g. EVENT456)" class="px-3 py-2 rounded-lg"/>
-        <button @click="markAttendance" class="bg-green-500 text-white px-4 py-2 rounded-lg">
+        <button @click="handleScan" class="bg-green-500 text-white px-4 py-2 rounded-lg">
           Mark Attendance
         </button>
       </div>
@@ -73,6 +74,7 @@
 import { ref, shallowRef, markRaw } from 'vue'
 import { Icon } from '@iconify/vue'
 import { ethers } from 'ethers'
+import { scanAttendance } from "@/services/attendanceService"
 import AttendanceABI from '../../../../backend/abi/Attendance.json'
 
 const SEPOLIA_CHAIN_ID = '0xaa36a7';
@@ -93,149 +95,177 @@ const formatDate = ts => {
   return new Date(ts * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
-// Switch to Sepolia
-const switchToSepolia = async () => {
+const handleScan = async () => {
   try {
-    await window.ethereum.request({
-      method: 'wallet_switchEthereumChain',
-      params: [{ chainId: SEPOLIA_CHAIN_ID }],
-    });
-  } catch (switchError) {
-    if (switchError.code === 4902) {
-      try {
-        await window.ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [
-            {
-              chainId: SEPOLIA_CHAIN_ID,
-              chainName: 'Sepolia Test Network',
-              nativeCurrency: { name: 'Sepolia Ether', symbol: 'SEP', decimals: 18 },
-              rpcUrls: ['https://sepolia.infura.io/v3/'],
-              blockExplorerUrls: ['https://sepolia.etherscan.io'],
-            },
-          ],
-        });
-      } catch (addError) {
-        console.error("Could not add Sepolia network", addError);
-      }
-    }
-    console.error("Failed to switch to Sepolia", switchError);
-  }
-}
+    const qrPayload = JSON.stringify({
+      "ticketId": ticketId.value,
+      "version": 1,
+    })
 
-// Connect MetaMask
-const connectMetaMask = async () => {
-  try {
-    if (!window.ethereum) return alert("MetaMask not detected!")
+    const res = await scanAttendance(qrPayload);
 
-    const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
-    if (currentChainId !== SEPOLIA_CHAIN_ID) {
-      await switchToSepolia();
-    }
-
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-    
-    const rawProvider = new ethers.BrowserProvider(window.ethereum)
-    provider.value = markRaw(rawProvider)
-    
-    const rawSigner = await provider.value.getSigner()
-    signer.value = markRaw(rawSigner)
-
-    const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS
-    if (!contractAddress) throw new Error("Contract address missing from .env")
-
-    const abi = AttendanceABI.abi
-
-    const rawContract = new ethers.Contract(contractAddress, abi, signer.value)
-    contract.value = markRaw(rawContract)
-
-    isConnected.value = true
-    console.log("Connected to Sepolia:", accounts[0])
+    console.log(res)
   } catch (err) {
-    console.error("Connection failed:", err)
-    alert("Check console. Make sure you are on Sepolia.")
-  }
+    alert(err)
+  } 
 }
 
-// Mark attendance
-const markAttendance = async () => {
-  if (!contract.value) return alert("Not connected")
-  try {
-    const _ticketId = ethers.id(ticketId.value)
-    const _eventId = ethers.id(eventId.value)
-
-    const isOp = await contract.value.operators(signer.value.address);
-    if (!isOp) {
-      alert("Error: Your wallet is not registered as an Operator!");
-      return;
-    }
-
-    const tx = await contract.value.markAttendance(_ticketId, _eventId)
-    await tx.wait()
-    alert("Attendance marked ✅")
-    fetchEventAttendees(_eventId)
-  } catch (err) {
-    if (err.message.includes("Ticket already used")) {
-      alert("This ticket has already been checked in!");
-    } else if (err.message.includes("Not operator")) {
-      alert("Access Denied: You are not a registered Operator.");
-    } else {
-      console.error("Detailed Error:", err);
-      alert("Transaction failed. Check console.");
-    }
-  }
-}
-
-// Check ticket
-const checkAttendance = async () => {
-  if (!checkTicketId.value) return alert("Please enter a Transaction Hash to verify");
-  
-  verified.value = null;
-  
-  try {
-    const response = await fetch('http://localhost:3000/api/tickets/verify-transaction', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        txHash: checkTicketId.value // Nama key harus 'txHash' agar sesuai controller
-      })
-    });
-
-    const result = await response.json();
-
-    if (result.success) {
-      verified.value = true;
-      alert("Transaction Verified via Etherscan API! ✅");
-    } else {
-      verified.value = false;
-      alert("Transaction Failed or Not Found on Etherscan ❌");
-    }
-  } catch (err) {
-    console.error("API Verification failed:", err);
-    alert("System error during verification");
-  }
-}
-
-// Fetch attendees
 const fetchEventAttendees = async (specificEventId) => {
-  if (!contract.value) return
   try {
     const targetEvent = specificEventId || ethers.id(eventId.value)
-    const tickets = await contract.value.getEventAttendees(targetEvent)
-    
-    const records = []
-    for (let t of tickets) {
-      const record = await contract.value.getAttendanceRecord(t)
-      records.push({
-        ticketId: t,
-        timestamp: Number(record.timestamp)
-      })
-    }
+    const tickets = await getEventAttendees(targetEvent)
+
     attendanceRecords.value = records.reverse()
   } catch (err) {
     console.error("Fetch failed:", err)
   }
 }
+
+
+
+// Switch to Sepolia
+// const switchToSepolia = async () => {
+//   try {
+//     await window.ethereum.request({
+//       method: 'wallet_switchEthereumChain',
+//       params: [{ chainId: SEPOLIA_CHAIN_ID }],
+//     });
+//   } catch (switchError) {
+//     if (switchError.code === 4902) {
+//       try {
+//         await window.ethereum.request({
+//           method: 'wallet_addEthereumChain',
+//           params: [
+//             {
+//               chainId: SEPOLIA_CHAIN_ID,
+//               chainName: 'Sepolia Test Network',
+//               nativeCurrency: { name: 'Sepolia Ether', symbol: 'SEP', decimals: 18 },
+//               rpcUrls: ['https://sepolia.infura.io/v3/'],
+//               blockExplorerUrls: ['https://sepolia.etherscan.io'],
+//             },
+//           ],
+//         });
+//       } catch (addError) {
+//         console.error("Could not add Sepolia network", addError);
+//       }
+//     }
+//     console.error("Failed to switch to Sepolia", switchError);
+//   }
+// }
+
+// Connect MetaMask
+// const connectMetaMask = async () => {
+//   try {
+//     if (!window.ethereum) return alert("MetaMask not detected!")
+//
+//     const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+//     if (currentChainId !== SEPOLIA_CHAIN_ID) {
+//       await switchToSepolia();
+//     }
+//
+//     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+//
+//     const rawProvider = new ethers.BrowserProvider(window.ethereum)
+//     provider.value = markRaw(rawProvider)
+//
+//     const rawSigner = await provider.value.getSigner()
+//     signer.value = markRaw(rawSigner)
+//
+//     const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS
+//     if (!contractAddress) throw new Error("Contract address missing from .env")
+//
+//     const abi = AttendanceABI.abi
+//
+//     const rawContract = new ethers.Contract(contractAddress, abi, signer.value)
+//     contract.value = markRaw(rawContract)
+//
+//     isConnected.value = true
+//     console.log("Connected to Sepolia:", accounts[0])
+//   } catch (err) {
+//     console.error("Connection failed:", err)
+//     alert("Check console. Make sure you are on Sepolia.")
+//   }
+// }
+
+// Mark attendance
+// const markAttendance = async () => {
+//   if (!contract.value) return alert("Not connected")
+//   try {
+//     const _ticketId = ticketId.value
+//     const _eventId = ethers.id(eventId.value)
+//
+//     const isOp = await contract.value.operators(signer.value.address);
+//     if (!isOp) {
+//       alert("Error: Your wallet is not registered as an Operator!");
+//       return;
+//     }
+//
+//     const tx = await contract.value.markAttendance(_ticketId, _eventId)
+//     await tx.wait()
+//     alert("Attendance marked ✅")
+//     fetchEventAttendees(_eventId)
+//   } catch (err) {
+//     if (err.message.includes("Ticket already used")) {
+//       alert("This ticket has already been checked in!");
+//     } else if (err.message.includes("Not operator")) {
+//       alert("Access Denied: You are not a registered Operator.");
+//     } else {
+//       console.error("Detailed Error:", err);
+//       alert("Transaction failed. Check console.");
+//     }
+//   }
+// }
+//
+// // Check ticket
+// const checkAttendance = async () => {
+//   if (!checkTicketId.value) return alert("Please enter a Transaction Hash to verify");
+//
+//   verified.value = null;
+//
+//   try {
+//     const response = await fetch('http://localhost:3000/api/tickets/verify-transaction', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({
+//         txHash: checkTicketId.value // Nama key harus 'txHash' agar sesuai controller
+//       })
+//     });
+//
+//     const result = await response.json();
+//
+//     if (result.success) {
+//       verified.value = true;
+//       alert("Transaction Verified via Etherscan API! ✅");
+//     } else {
+//       verified.value = false;
+//       alert("Transaction Failed or Not Found on Etherscan ❌");
+//     }
+//   } catch (err) {
+//     console.error("API Verification failed:", err);
+//     alert("System error during verification");
+//   }
+// }
+//
+// // Fetch attendees
+// const fetchEventAttendees = async (specificEventId) => {
+//   if (!contract.value) return
+//   try {
+//     const targetEvent = specificEventId || ethers.id(eventId.value)
+//     const tickets = await contract.value.getEventAttendees(targetEvent)
+//
+//     const records = []
+//     for (let t of tickets) {
+//       const record = await contract.value.getAttendanceRecord(t)
+//       records.push({
+//         ticketId: t,
+//         timestamp: Number(record.timestamp)
+//       })
+//     }
+//     attendanceRecords.value = records.reverse()
+//   } catch (err) {
+//     console.error("Fetch failed:", err)
+//   }
+// }
 
 const disconnectMetaMask = () => {
   provider.value = null

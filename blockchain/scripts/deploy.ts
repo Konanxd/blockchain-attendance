@@ -25,7 +25,7 @@ async function main() {
 
   await attendance.addOperator(await attendance.owner());
 
-  await attendance.operators(process.env.ADMIN_ADDRESS);
+  await attendance.operators(process.env.OWNER_ADDRESS);
 
   const address = await attendance.getAddress();
   console.log(`Attendance contract deployed to: ${address}`);

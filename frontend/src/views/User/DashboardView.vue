@@ -54,7 +54,7 @@
           </div>
           <button
             class="flex items-center justify-center w-full px-2 py-2 rounded-2xl bg-[#788bff] text-white gap-2 text-base"
-            @click="handleView(ticket.ticketId)"
+            @click="handleView(ticket.id)"
           >
             <Icon class="text-2xl" icon="mingcute:ticket-fill" /> 
             View Ticket
@@ -98,10 +98,9 @@ function isTicketDisabled(ticket) {
   return ticket.used === true || eventDate <= now
 }
 
-async function handleView(ticketId) {
+async function handleView(id) {
   try {
-
-    router.push(`/detail/${ticketId}`)
+    router.push(`/detail/${id}`)
   } catch (err) {
     error.value = err?.response?.data?.message || 'Invalid email or password'
     console.error(err)

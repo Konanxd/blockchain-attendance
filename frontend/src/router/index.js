@@ -10,7 +10,7 @@ const userRoutes = [
     meta: { requiresAuth: true },
   },
   {
-    path: '/detail/:ticketId',
+    path: '/detail/:id',
     name: 'TicketDetail',
     component: () => import('@/views/User/TicketDetailView.vue'),
     meta: { requiresAuth: true },

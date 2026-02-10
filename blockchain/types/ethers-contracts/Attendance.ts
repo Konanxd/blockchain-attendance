@@ -6,9 +6,9 @@ import type { TypedContractEvent, TypedDeferredTopicFilter, TypedEventLog, Typed
   
 export declare namespace Attendance {
       
-    export type AttendanceRecordStruct = {userAddress: AddressLike, timestamp: BigNumberish, eventId: BytesLike}
+    export type AttendanceRecordStruct = {timestamp: BigNumberish, eventId: BytesLike}
 
-    export type AttendanceRecordStructOutput = [userAddress: string, timestamp: bigint, eventId: string] & {userAddress: string, timestamp: bigint, eventId: string }
+    export type AttendanceRecordStructOutput = [timestamp: bigint, eventId: string] & {timestamp: bigint, eventId: string }
   
     }
 
@@ -21,7 +21,7 @@ export declare namespace Attendance {
 encodeFunctionData(functionFragment: 'getAttendanceRecord', values: [BytesLike]): string;
 encodeFunctionData(functionFragment: 'getEventAttendees', values: [BytesLike]): string;
 encodeFunctionData(functionFragment: 'hasAttended', values: [BytesLike]): string;
-encodeFunctionData(functionFragment: 'markAttendance', values: [AddressLike, BytesLike, BytesLike]): string;
+encodeFunctionData(functionFragment: 'markAttendance', values: [BytesLike, BytesLike]): string;
 encodeFunctionData(functionFragment: 'operators', values: [AddressLike]): string;
 encodeFunctionData(functionFragment: 'owner', values?: undefined): string;
 encodeFunctionData(functionFragment: 'removeOperator', values: [AddressLike]): string;
@@ -40,9 +40,9 @@ decodeFunctionResult(functionFragment: 'verifyAttendance', data: BytesLike): Res
 
   
     export namespace AttendanceMarkedEvent {
-      export type InputTuple = [userAddress: AddressLike, ticketId: BytesLike, eventId: BytesLike, timestamp: BigNumberish];
-      export type OutputTuple = [userAddress: string, ticketId: string, eventId: string, timestamp: bigint];
-      export interface OutputObject {userAddress: string, ticketId: string, eventId: string, timestamp: bigint };
+      export type InputTuple = [ticketId: BytesLike, eventId: BytesLike, timestamp: BigNumberish];
+      export type OutputTuple = [ticketId: string, eventId: string, timestamp: bigint];
+      export interface OutputObject {ticketId: string, eventId: string, timestamp: bigint };
       export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>
       export type Filter = TypedDeferredTopicFilter<Event>
       export type Log = TypedEventLog<Event>
@@ -118,7 +118,7 @@ decodeFunctionResult(functionFragment: 'verifyAttendance', data: BytesLike): Res
 
     
     markAttendance: TypedContractMethod<
-      [_userAddress: AddressLike, _ticketId: BytesLike, _eventId: BytesLike, ],
+      [_ticketId: BytesLike, _eventId: BytesLike, ],
       [void],
       'nonpayable'
     >
@@ -180,7 +180,7 @@ getFunction(nameOrSignature: 'hasAttended'): TypedContractMethod<
       'view'
     >;
 getFunction(nameOrSignature: 'markAttendance'): TypedContractMethod<
-      [_userAddress: AddressLike, _ticketId: BytesLike, _eventId: BytesLike, ],
+      [_ticketId: BytesLike, _eventId: BytesLike, ],
       [void],
       'nonpayable'
     >;
@@ -209,7 +209,7 @@ getFunction(nameOrSignature: 'verifyAttendance'): TypedContractMethod<
 
     filters: {
       
-      'AttendanceMarked(address,bytes32,bytes32,uint256)': TypedContractEvent<AttendanceMarkedEvent.InputTuple, AttendanceMarkedEvent.OutputTuple, AttendanceMarkedEvent.OutputObject>;
+      'AttendanceMarked(bytes32,bytes32,uint256)': TypedContractEvent<AttendanceMarkedEvent.InputTuple, AttendanceMarkedEvent.OutputTuple, AttendanceMarkedEvent.OutputObject>;
       AttendanceMarked: TypedContractEvent<AttendanceMarkedEvent.InputTuple, AttendanceMarkedEvent.OutputTuple, AttendanceMarkedEvent.OutputObject>;
     
     };
