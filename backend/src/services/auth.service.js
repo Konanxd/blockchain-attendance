@@ -2,15 +2,14 @@ import bcrypt from "bcrypt";
 import { prisma } from "../utils/prisma.ts";
 import { signToken } from "../utils/jwt.js";
 
+
 class AuthService {
-  async register(name, email, password) {
+  async register(name, email, password, role = "USER") {
     const exists = await prisma.user.findUnique({
       where: { email },
     });
 
-    if (exists) {
-      throw new Error("Email already registered");
-    }
+    if (exists) throw new Error("Email already registered");
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -19,13 +18,15 @@ class AuthService {
         name,
         email,
         password: hashedPassword,
+        role,
       },
     });
 
     return {
-      name: user.name,
       id: user.id,
+      name: user.name,
       email: user.email,
+      role: user.role,
     };
   }
 
@@ -34,52 +35,24 @@ class AuthService {
       where: { email },
     });
 
-    if (!user) {
-      throw new Error("Invalid credentials");
-    }
+    if (!user) throw new Error("Invalid credentials");
 
     const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
-      throw new Error("Invalid credentials");
-    }
+    if (!isValid) throw new Error("Invalid credentials");
 
     const token = signToken({
-      sub: user.id,
+      id: user.id,
+      role: user.role,
     });
 
     return {
       token,
       user: {
-        name: user.name,
         id: user.id,
+        name: user.name,
         email: user.email,
+        role: user.role || "USER",
       },
-    };
-  }
-
-  async register(name, email, password) {
-    const exists = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (exists) {
-      throw new Error("Email already registered");
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-      },
-    });
-
-    return {
-      name: user.name,
-      id: user.id,
-      email: user.email,
     };
   }
 }

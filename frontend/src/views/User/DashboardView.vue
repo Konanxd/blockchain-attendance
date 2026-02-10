@@ -16,11 +16,11 @@
     <div v-else-if="error" class="text-red-200 text-center">{{ error }}</div>
     <div v-else-if="tickets && tickets.length === 0">No tickets found</div>
 
-    <div v-else>
+    <div class="flex flex-wrap w-full px-5 gap-5" v-else>
       <div
         v-for="ticket in tickets"
         :key="ticket.id"
-        class="flex flex-col w-full px-10 pb-3 shadow-3xl gap-5"
+        class="flex flex-1 flex-col min-w-[300px] pb-3 shadow-3xl gap-5"
         :class="{ 'opacity-50': isTicketDisabled(ticket) }"
       >
         <div
@@ -54,7 +54,7 @@
           </div>
           <button
             class="flex items-center justify-center w-full px-2 py-2 rounded-2xl bg-[#788bff] text-white gap-2 text-base"
-            @click="handleView(ticket.id)"
+            @click="handleView(ticket.ticketId)"
           >
             <Icon class="text-2xl" icon="mingcute:ticket-fill" /> 
             View Ticket

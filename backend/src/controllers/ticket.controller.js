@@ -107,7 +107,7 @@ export const getUserTickets = async (req, res) => {
       include: { event: true },
     });
 
-    console.log(tickets)
+    console.log("Tickets fetched:", tickets);
 
     return res.json(tickets);
   } catch (error) {

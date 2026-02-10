@@ -59,20 +59,27 @@ class BlockchainService {
     }
   }
 
-  async verifyAttendance(ticketId) {
+  async verifyAttendance(idInput) {
     try {
-      const ticketIdBytes = ethers.id(ticketId);
-      const hasAttended = await this.contract.verifyAttendance(ticketIdBytes);
-      return hasAttended;
+      if (!idInput) {
+        console.error("Service Error: idInput is missing");
+        return false;
+      }
+      console.log("Service: Memverifikasi ke Kontrak dengan ID Asli:", idInput);
+
+      const status = await this.contract.verifyAttendance(idInput);
+      return status;
     } catch (error) {
-      console.error("Error verifying attendance:", error.message);
+      console.error("Service Error:", error.message);
       throw error;
     }
   }
 
   async getAttendanceRecord(ticketId) {
     try {
-      const ticketIdBytes = ethers.id(ticketId);
+      if (!ticketId) throw new Error("ticketId is required");
+
+      const ticketIdBytes = ticketId.startsWith('0x') ? ticketId : ethers.id(ticketId);
       const record = await this.contract.getAttendanceRecord(ticketIdBytes);
 
       return {

@@ -1,6 +1,6 @@
-<template class="login-view">
+<template>
   <div
-    class="login-form flex flex-col gap-20 w-screen h-screen m-0 bg-gradient-to-b from-[#788BFF] to-[#5970FF] items-center justify-center"
+    class="login-view login-form flex flex-col gap-20 w-screen h-screen m-0 bg-gradient-to-b from-[#788BFF] to-[#5970FF] items-center justify-center"
   >
     <img src="../assets/images/LoginImage.png" alt="" />
     <div class="flex flex-col text-center min-w-[300px]">
@@ -73,17 +73,37 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 async function handleLogin() {
+  loading.value = true
+  error.value = ''
+
   try {
+    // Panggil API login
     const data = await login(email.value, password.value)
 
+    // Update store dan localStorage
     authStore.login(data.user, data.token)
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('user', JSON.stringify(data.user))
 
-    router.push('/dashboard')
+    // Debugging
+    console.log('Login response:', data)
+    console.log('AuthStore user:', authStore.user)
+
+    // Normalisasi role (hapus spasi & uppercase)
+    const role = data.user.role?.trim().toUpperCase() || 'USER'
+    console.log('Normalized role:', role)
+
+    // Redirect berdasarkan role
+    if (role === 'ADMIN') router.push('/attendance')
+    else router.push('/dashboard')
+
   } catch (err) {
+    // Tangani error login
     error.value = err?.response?.data?.message || 'Invalid email or password'
-    console.error(err)
+    console.error('Login error:', err)
   } finally {
     loading.value = false
   }
 }
 </script>
+

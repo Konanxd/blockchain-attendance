@@ -35,7 +35,7 @@ contract Attendance {
      }
 
      mapping(bytes32 => AttendanceRecord) private attendanceRecords;
-     
+
      mapping(bytes32 => bool) public hasAttended;
 
      mapping(bytes32 => bytes32[]) private eventAttendees;

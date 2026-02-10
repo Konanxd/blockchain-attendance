@@ -1,6 +1,8 @@
 import blockchainService from "../services/blockchain.service.js";
 import { prisma } from "../utils/prisma.ts";
 import ticketService from "../services/ticket.service.js";
+import etherscanService from "../services/etherscan.service.js";
+import { ethers } from "ethers";
 
 export const scanAttendance = async (req, res) => {
   try {
@@ -53,19 +55,27 @@ export const scanAttendance = async (req, res) => {
 
 export const verifyAttendance = async (req, res) => {
   try {
-    const { ticketId } = req.params;
+    const idToVerify = req.body.ticketId || req.body.txHash || req.body.checkTicketId;
 
-    const onChain = await blockchainService.verifyAttendance(ticketId);
+    console.log("--- DEBUG CONTROLLER ---");
+    console.log("Body diterima:", req.body);
+
+    if (!idToVerify) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Data missing! Gunakan 'ticketId' atau 'txHash' di JSON." 
+      });
+    }
+
+    const onChain = await blockchainService.verifyAttendance(idToVerify);
 
     return res.json({
       success: true,
       verified: onChain,
     });
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({
-      error: e.message,
-    });
+    console.error("Error di Controller:", e);
+    return res.status(500).json({ error: e.message });
   }
 };
 // class AttendanceController {

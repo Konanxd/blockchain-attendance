@@ -4,12 +4,13 @@ import { scanTicket } from "../controllers/scanner.controller";
 
 const router = express.Router();
 
-// router.post("/mark", attendanceController.markAttendance);
-// router.get("/verify:ticketId", attendanceController.verifyTicket);
-// router.get("/record:ticketId", attendanceController.getRecord);
-// router.get("/event:eventId", attendanceController.getEventAttendees);
-// router.post("/wallet", attendanceController.createWallet);
+router.post("/mark", attendanceController.markAttendance);
+router.get("/verify/:ticketId", attendanceController.verifyTicket);
+router.get("/record/:ticketId", attendanceController.getRecord);
+router.get("/event/:eventId", attendanceController.getEventAttendees);
+router.post("/wallet", attendanceController.createWallet);
+router.post("/verify-transaction", attendanceController.verifyAttendance);
 
-// router.post("/scan", operatorAuth, scanTicket);
+router.post("/scan", operatorAuth, scanTicket);
 
 export default router;
