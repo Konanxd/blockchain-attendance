@@ -8,6 +8,11 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
   id        Int       @id @default(autoincrement())
   name      String
@@ -52,7 +57,4 @@ enum OperatorRole {
   OPERATOR
 }
 
-enum UserRole {
-  USER
-  ADMIN
-}
+

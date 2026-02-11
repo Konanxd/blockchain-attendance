@@ -15,10 +15,10 @@ class AuthService {
 
     const user = await prisma.user.create({
       data: {
-        name,
-        email,
+        name: name,
+        email: email,
         password: hashedPassword,
-        role,
+        role: role,
       },
     });
 

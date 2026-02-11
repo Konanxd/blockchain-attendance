@@ -22,6 +22,10 @@ const adminRoutes = [
     path: '/attendance',
     name: 'AttendanceList',
     component: () => import('@/views/Admin/AttendanceListView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+    },
   },
 ]
 
@@ -53,12 +57,19 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
 
+  const isLoggedIn = authStore.isAuthenticated
+  const isAdmin = authStore.isAdmin
+
   if (to.meta.requiresAuth && !authStore.isLoggedIn) {
     return next('/login')
   }
 
-  if (to.meta.guestOnly && authStore.isLoggedIn) {
-    return next('/dashboard')
+  if (to.meta.requiresAdmin && !isAdmin) {
+    return next('/dashboard') // or 403 page
+  }
+
+  if (to.meta.guestOnly && isLoggedIn) {
+    return isAdmin ? next('/attendance') : next('/dashboard')
   }
 
   next()
