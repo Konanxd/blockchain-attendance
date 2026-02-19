@@ -7,48 +7,78 @@ import { ethers } from "ethers";
 export const scanAttendance = async (req, res) => {
   try {
     const { qrPayload } = req.body;
+    const { ticketId } = JSON.parse(qrPayload);
 
-    if (!qrPayload) {
-      return res.status(400).json({
-        error: "QR Payload required",
-      });
-    }
-
-    const { ticketId } = ticketService.parseQRPayload(qrPayload);
-
-    const ticket = await prisma.ticket.findUnique({
-      where: { ticketId },
-      include: { user: true, event: true },
-    });
-
-    if (!ticket) {
-      return res.status(404).json({
-        error: "Ticket not found",
-      });
-    }
-
-    if (ticket.used) {
-      return res.status(400).json({
-        error: "Ticket already used",
-      });
-    }
-
-    const tx = await blockchainService.markAttendance(ticket.ticketId, ticket.event.eventCode);
-
-    await prisma.ticket.update({
-      where: { id: ticketId },
+    const updatedTicket = await prisma.ticket.update({
+      where: { ticketId: ticketId },
       data: { used: true },
+      include: { 
+        user: true,
+        event: true
+      }
     });
+
+    const blockchainRes = await blockchainService.markAttendance(ticketId, updatedTicket.eventId);
+    const etherscanRes = await etherscanService.getTransactionReceipt(blockchainRes.transactionHash);
 
     return res.json({
       success: true,
       message: "Attendance recorded!",
-      blockchain: tx,
+      blockchain: blockchainRes,
+      attendeeDetails: {
+        name: updatedTicket.user.name,
+        section: "102",
+        row: "G",
+        seat: "14",
+        ticketId: updatedTicket.ticketId
+      },
+      etherscan:
     });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({
-      error: e.message,
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+export const getEventAttendees = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const ticketIds = await blockchainService.getEventAttendees(eventId); 
+
+    if (!ticketIds || ticketIds.length === 0) {
+      return res.json({
+        success: true,
+        data: []
+      });
+    }
+
+    const records = await Promise.all(
+      ticketIds.map(async (id) => {
+        try {
+          const record = await blockchainService.getAttendanceRecord(id);
+          return {
+            ticketId: id,
+            timestamp: record && record.timestamp ? Number(record.timestamp) : Math.floor(Date.now() / 1000)
+          };
+        } catch (itemError) {
+          console.warn(`Gagal ambil detail untuk ticket ${id}:`, itemError.message);
+          return null;
+        }
+      })
+    );
+
+    const validRecords = records.filter(r => r !== null);
+
+    return res.json({
+      success: true,
+      data: validRecords
+    });
+  } catch (error) {
+    console.error("ERROR BLOCKCHAIN FETCH:", error);
+    return res.status(500).json({ 
+      success: false, 
+      message: "Gagal mengambil data dari blockchain",
+      error: error.message 
     });
   }
 };

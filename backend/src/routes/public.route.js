@@ -1,5 +1,5 @@
 import express from "express";
-import { verifyAttendance } from "../controllers/attendace.controller.js";
+import { verifyAttendance } from "../controllers/attendance.controller.js";
 
 const router = express.Router();
 

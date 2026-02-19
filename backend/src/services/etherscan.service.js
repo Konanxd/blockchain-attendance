@@ -62,7 +62,7 @@ class EtherscanService {
       }
     });
 
-    if (!data.status !== 1) {
+    if (data.status !== 1) {
       throw new Error(data.message | "Failed to address transactions");
     }
 

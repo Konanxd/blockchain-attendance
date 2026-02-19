@@ -63,7 +63,7 @@ class BlockchainService {
       console.log(`Transaction confirmed on block: ${receipt.blockNumber}`);
 
       console.log('Etherscan result:\n')
-      const etherscanTx = await etherscanService.getTransactionFromReceipt(tx.hash)
+      const etherscanTx = await etherscanService.getTransactionReceipt(tx.hash)
       console.log(etherscanTx)
 
       return {

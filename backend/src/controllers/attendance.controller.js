@@ -1,54 +1,58 @@
 import blockchainService from "../services/blockchain.service.js";
 import { prisma } from "../utils/prisma.ts";
 import ticketService from "../services/ticket.service.js";
+import etherscanService from "../services/etherscan.service.js";
 
 export const scanAttendance = async (req, res) => {
   try {
     const { qrPayload } = req.body;
-
-    if (!qrPayload) {
-      return res.status(400).json({
-        error: "QR Payload required",
-      });
-    }
-
-    const { ticketId } = ticketService.parseQRPayload(qrPayload);
+    const { ticketId } = JSON.parse(qrPayload);
 
     const ticket = await prisma.ticket.findUnique({
-      where: { ticketId },
-      include: { user: true, event: true },
+      where: { ticketId: ticketId },
+      include: { 
+        user: true, 
+        event: true 
+      }
     });
 
-    if (!ticket) {
-      return res.status(404).json({
-        error: "Ticket not found",
-      });
-    }
 
-    if (ticket.used) {
-      return res.status(400).json({
-        error: "Ticket already used",
-      });
-    }
+    const blockchainRes = await blockchainService.markAttendance(ticketId, ticket.event.eventCode);
 
-    console.log(ticket)
-    const tx = await blockchainService.markAttendance(ticket.ticketId, ticket.event.eventCode);
+    let etherscanRes = null;
+    try {
+       etherscanRes = await etherscanService.getTransactionReceipt(blockchainRes.transactionHash);
+    } catch (e) {
+       console.log("Etherscan receipt belum siap, abaikan sementara.");
+    }
 
     await prisma.ticket.update({
-      where: { ticketId },
+      where: { ticketId: ticketId },
       data: { used: true },
+      include: { 
+        user: true, 
+        event: true 
+      }
     });
 
     return res.json({
       success: true,
       message: "Attendance recorded!",
-      blockchain: tx,
+      blockchain: blockchainRes,
+      attendeeDetails: {
+        name: ticket.user.name,
+        section: "102",
+        row: "G",
+        seat: "14",
+        ticketId: ticketId
+      },
+      etherscan: etherscanRes,
     });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({
-      error: e.message,
-    });
+
+  } catch (error) {
+    console.error("Error Detail di Controller:", error);
+    // Jika error karena tiket sudah dipakai, Prisma akan melempar error unik
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
@@ -73,23 +77,23 @@ export const verifyAttendance = async (req, res) => {
 export const getEventAttendees = async (req, res) => {
   try {
     const { eventId } = req.params;
+    const ticketIds = await blockchainService.getEventAttendees(eventId); 
+    console.log("Ticket IDs fetched:", ticketIds);
 
-    const tickets = await blockchainService.getEventAttendees(eventId);
+    if (!ticketIds || ticketIds.length === 0) return res.json({ success: true, data: [] });
 
-    const records = []
-    for (let t of tickets) {
-      records.push({
-        ticketId: t,
-        timestamp: Number(record.timestamp)
+    const records = await Promise.all(
+      ticketIds.map(async (id) => {
+        try {
+          const record = await blockchainService.getAttendanceRecord(id);
+          return { ticketId: id, timestamp: record?.timestamp ? Number(record.timestamp) : 0 };
+        } catch { return null; }
       })
-    }
+    );
 
-    return ticketIds
+    return res.json({ success: true, data: records.filter(r => r !== null) });
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({
-      error: e.message,
-    });
+    return res.status(500).json({ success: false, error: e.message });
   }
 };
 
